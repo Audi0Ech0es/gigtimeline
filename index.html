@@ -1,237 +1,237 @@
-// components/Timeline.tsx
-import React, { useEffect, useMemo, useState } from "react";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import Papa from "papaparse";
-import { CalendarDays, Music, MapPin, Globe } from "lucide-react";
+<!-- 📦 Timeline Embed Start -->
+<div class="timeline-embed">
+  <div class="filters">
+    <label for="yearSelect">Jump to Year:</label>
+    <select id="yearSelect">
+      <option value="">-- Select --</option>
+    </select>
+  </div>
 
-const CSV_URL =
-  "https://docs.google.com/spreadsheets/d/e/2PACX-1vTrfZfkmg5TVJmzhzn59YPXvQO-UXKJlC7zTUWo_MItM_tzINTt6aIOfj3-D7THX7Bw-uVBSUJ1Tgny/pub?gid=0&single=true&output=csv";
+  <div id="loading">Loading timeline...</div>
+  <ul class="timeline" id="timeline"></ul>
 
-type Event = {
-  date: string;
-  venue: string;
-  city: string;
-  country: string;
-};
+  <button id="backToTop" title="Back to top">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+         fill="none" stroke="currentColor" stroke-width="2"
+         stroke-linecap="round" stroke-linejoin="round">
+      <polygon points="6 3 20 12 6 21 6 3" />
+    </svg>
+  </button>
+</div>
 
-const parseDate = (dateStr: string): Date => {
-  const [day, month, year] = dateStr.split("/").map(Number);
-  const date = new Date(year, month - 1, day);
-  return isNaN(date.getTime()) ? new Date() : date;
-};
+<style>
+  .timeline-embed {
+    font-family: inherit;
+    font-size: 15px;
+    line-height: 1.4;
+    color: #111;
+    max-width: 100%;
+  }
 
-const parseCSV = async (url: string): Promise<Event[]> => {
-  const response = await fetch(url);
-  if (!response.ok) throw new Error("CSV fetch failed");
-  const csvText = await response.text();
-  const parsed = Papa.parse(csvText, {
-    header: true,
-    skipEmptyLines: true,
-    dynamicTyping: true,
-  });
+  .timeline-embed .filters {
+    text-align: center;
+    padding: 0.8em;
+    border-bottom: 1px solid #ddd;
+    position: sticky;
+    top: 0;
+    background: #fff;
+    z-index: 10;
+  }
 
-  return parsed.data
-    .filter((row: any) =>
-      row.Date &&
-      row.Venue &&
-      row.City &&
-      row.Country &&
-      !isNaN(parseDate(row.Date).getTime())
-    )
-    .map((row: any) => ({
-      date: parseDate(row.Date).toISOString().slice(0, 10),
-      venue: row.Venue,
-      city: row.City,
-      country: row.Country,
-    }));
-};
+  .timeline-embed select {
+    font: inherit;
+    padding: 0.4em 0.8em;
+    border: 1px solid #ccc;
+    background: #fafafa;
+  }
 
-const groupByYear = (data: Event[]): Record<string, Event[]> => {
-  const grouped = data.reduce((acc, event) => {
-    const year = new Date(event.date).getFullYear().toString();
-    if (!acc[year]) acc[year] = [];
-    acc[year].push(event);
-    return acc;
-  }, {} as Record<string, Event[]>);
+  .timeline-embed .timeline {
+    list-style: none;
+    padding: 0;
+    margin: 0 auto;
+    max-width: 720px;
+  }
 
-  Object.values(grouped).forEach((arr) =>
-    arr.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-  );
+  .timeline-embed .year-separator {
+    text-align: center;
+    font-size: 0.95em;
+    font-weight: bold;
+    margin: 2em 0 1em;
+    color: #333;
+  }
 
-  return grouped;
-};
+  .timeline-embed .year-separator::before,
+  .timeline-embed .year-separator::after {
+    content: "⎯";
+    margin: 0 0.5em;
+    color: #aaa;
+  }
 
-const getUniqueCountries = (data: Event[]): string[] => {
-  return Array.from(new Set(data.map((e) => e.country)));
-};
+  .timeline-embed li {
+    padding: 1em 1em 1em 2.5em;
+    margin-bottom: 1.2em;
+    border-left: 3px solid #000;
+    position: relative;
+    background: #fff;
+    transition: all 0.2s ease;
+  }
 
-const getUniqueYears = (data: Event[]): string[] => {
-  return Array.from(new Set(data.map((e) => new Date(e.date).getFullYear().toString()))).sort();
-};
+  .timeline-embed li:hover {
+    background: #f9f9f9;
+  }
 
-const getFlagUrl = (() => {
-  const cache: Record<string, string | null> = {};
-  const isoMap: Record<string, string> = {
-    "England": "gb",
-    "Scotland": "gb",
-    "Wales": "gb",
-    "France": "fr",
-    "United States of America": "us",
-    "Netherlands": "nl",
-    "Sweden": "se",
-    "Ireland": "ie",
-    "Northern Ireland": "gb",
-    "Germany": "de",
-    "Japan": "jp",
-    "Canada": "ca",
-    "Denmark": "dk",
-    "Italy": "it",
-    "Switzerland": "ch",
-    "Spain": "es",
-    "Belgium": "be",
-    "Czech Republic": "cz",
-    "Hong Kong China": "hk",
-    "Australia": "au",
-    "New Zealand": "nz",
-    "Chile": "cl",
-    "Argentina": "ar",
-    "Brazil": "br",
-    "Mexico": "mx",
-    "Portugal": "pt",
-    "Poland": "pl",
-    "Finland": "fi",
-    "Norway": "no",
-    "Greece": "gr",
-    "Hungary": "hu",
-    "Venezuela": "ve",
-    "Thailand": "th",
-    "South Korea": "kr",
-    "Singapore": "sg",
-    "Taiwan": "tw",
-    "South Africa": "za",
-    "Peru": "pe"
-  };
+  .timeline-embed .icon-eq {
+    position: absolute;
+    left: 1em;
+    top: 1.3em;
+  }
 
-  return (country: string): string | null => {
-    if (cache[country] !== undefined) return cache[country];
-    const code = isoMap[country];
-    return (cache[country] = code ? `https://flagcdn.com/w20/${code}.png` : null);
-  };
-})();
+  .timeline-embed .icon-eq svg {
+    height: 1.1em;
+    width: 1.1em;
+    stroke: #000;
+  }
 
-const formatFullDate = (iso: string): string => {
-  return new Date(iso).toLocaleDateString(undefined, {
-    weekday: "long",
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
-};
+  .timeline-embed .date {
+    font-size: 0.75em;
+    font-weight: bold;
+    margin-bottom: 0.3em;
+    display: block;
+  }
 
-const Timeline: React.FC = () => {
-  const [events, setEvents] = useState<Event[]>([]);
-  const [filterCountry, setFilterCountry] = useState("All");
-  const [filterYear, setFilterYear] = useState("All");
+  .timeline-embed .venue,
+  .timeline-embed .location {
+    font-size: 1em;
+  }
 
-  useEffect(() => {
-    const fetchEvents = async () => {
-      try {
-        const data = await parseCSV(CSV_URL);
-        setEvents(data);
-      } catch (error) {
-        console.error("Failed to load events:", error);
-      }
-    };
-    fetchEvents();
-  }, []);
+  .timeline-embed #loading {
+    text-align: center;
+    padding: 2em 0;
+    font-style: italic;
+  }
 
-  const filteredEvents = events.filter((e) => {
-    const matchCountry = filterCountry === "All" || e.country === filterCountry;
-    const matchYear = filterYear === "All" || new Date(e.date).getFullYear().toString() === filterYear;
-    return matchCountry && matchYear;
-  });
+  .timeline-embed #backToTop {
+    position: fixed;
+    bottom: 1.5em;
+    right: 1.5em;
+    background: none;
+    border: none;
+    cursor: pointer;
+    display: none;
+    transform: rotate(-90deg);
+  }
 
-  const grouped = groupByYear(filteredEvents);
-  const sortedYears = Object.keys(grouped).sort();
-  const countries = useMemo(() => ["All", ...getUniqueCountries(events)], [events]);
-  const years = useMemo(() => ["All", ...getUniqueYears(events)], [events]);
+  .timeline-embed #backToTop svg {
+    width: 1.4em;
+    height: 1.4em;
+    stroke: #000;
+    transition: transform 0.2s ease;
+  }
 
-  return (
-    <div className="h-[100vh] w-full flex flex-col bg-white text-black font-mono p-4">
-      <div className="flex flex-wrap justify-center gap-4 mb-4">
-        <div className="flex items-center gap-2">
-          <Globe className="text-black" size={18} />
-          <select
-            className="border border-black px-4 py-1 text-sm uppercase"
-            value={filterCountry}
-            onChange={(e) => setFilterCountry(e.target.value)}
-          >
-            {countries.map((country) => (
-              <option key={country} value={country}>
-                {country}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div className="flex items-center gap-2">
-          <CalendarDays className="text-black" size={18} />
-          <select
-            className="border border-black px-4 py-1 text-sm uppercase"
-            value={filterYear}
-            onChange={(e) => setFilterYear(e.target.value)}
-          >
-            {years.map((year) => (
-              <option key={year} value={year}>
-                {year}
-              </option>
-            ))}
-          </select>
-        </div>
-      </div>
+  .timeline-embed #backToTop:hover svg {
+    transform: rotate(-90deg) scale(1.15);
+  }
+</style>
 
-      <ScrollArea className="flex-1 w-full px-6">
-        <div className="space-y-16 text-left text-black relative max-w-4xl mx-auto">
-          {sortedYears.map((year) => (
-            <div key={year} className="relative">
-              <h2 className="text-2xl font-bold uppercase border-b border-black flex items-center gap-2 mb-4">
-                <CalendarDays className="text-black" size={20} />
-                {year}
-              </h2>
-              <div className="space-y-6">
-                {grouped[year].map((event, idx) => {
-                  const flagUrl = getFlagUrl(event.country);
-                  return (
-                    <div
-                      key={idx}
-                      className="text-sm uppercase font-medium tracking-wide flex-nowrap flex flex-row items-center gap-2 overflow-hidden hover:bg-gray-100 px-2 py-1 rounded"
-                    >
-                      <div className="flex items-center gap-1 whitespace-nowrap">
-                        <Music size={14} className="text-black" />
-                        <span className="font-bold">
-                          {formatFullDate(event.date)}
-                        </span>
-                      </div>
-                      <div className="truncate">
-                        – {event.venue}, {event.city} <MapPin size={12} className="inline text-black" />, {event.country}
-                        {flagUrl && (
-                          <img
-                            src={flagUrl}
-                            alt={event.country}
-                            title={event.country}
-                            className="w-4 h-3 inline-block ml-1"
-                          />
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          ))}
-        </div>
-      </ScrollArea>
-    </div>
-  );
-};
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+<script>
+  (() => {
+    const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQFiiNQbh6Zl6XboxeYDkXlgY0lCVxbgKY13disqsct61g_WmLXSnTG3HUeuzihqZ-HR0N6TIhPWyXb/pub?gid=0&single=true&output=csv';
 
-export default Timeline;
+    const timeline = document.querySelector('.timeline-embed #timeline');
+    const loading = document.querySelector('.timeline-embed #loading');
+    const yearSelect = document.querySelector('.timeline-embed #yearSelect');
+    const backToTopBtn = document.querySelector('.timeline-embed #backToTop');
+    let allEvents = [];
+
+    fetch(csvUrl)
+      .then(res => res.text())
+      .then(text => {
+        const data = Papa.parse(text, { header: true }).data;
+        allEvents = data.filter(e => e.Date && e.Venue && e.City && e.Country)
+          .map(e => {
+            const date = new Date(e.Date.split('/').reverse().join('-'));
+            return {
+              date,
+              year: date.getFullYear(),
+              venue: e.Venue.trim(),
+              city: e.City.trim(),
+              country: e.Country.trim(),
+            };
+          });
+        populateYearOptions();
+        renderTimeline();
+      })
+      .catch(() => {
+        loading.textContent = 'Failed to load events.';
+      });
+
+    yearSelect.addEventListener('change', renderTimeline);
+
+    window.addEventListener('scroll', () => {
+      backToTopBtn.style.display = window.scrollY > 300 ? 'block' : 'none';
+    });
+
+    backToTopBtn.addEventListener('click', () => {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+
+    function populateYearOptions() {
+      const years = [...new Set(allEvents.map(e => e.year))].sort();
+      years.forEach(year => {
+        const opt = document.createElement('option');
+        opt.value = year;
+        opt.textContent = year;
+        yearSelect.appendChild(opt);
+      });
+    }
+
+    function renderTimeline() {
+      const selectedYear = parseInt(yearSelect.value);
+      const filtered = isNaN(selectedYear)
+        ? allEvents
+        : allEvents.filter(e => e.year === selectedYear);
+
+      timeline.innerHTML = '';
+      let lastYear = null;
+
+      filtered.sort((a, b) => a.date - b.date).forEach(event => {
+        if (event.year !== lastYear) {
+          const yearDiv = document.createElement('div');
+          yearDiv.className = 'year-separator';
+          yearDiv.textContent = event.year;
+          timeline.appendChild(yearDiv);
+          lastYear = event.year;
+        }
+
+        const li = document.createElement('li');
+        li.innerHTML = `
+          <span class="icon-eq">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+              fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="6 3 20 12 6 21 6 3" />
+            </svg>
+          </span>
+          <span class="date">${event.date.toLocaleDateString()}</span>
+          <span class="venue">${sanitize(event.venue)}</span>,
+          <span class="location">${sanitize(event.city)}, ${sanitize(event.country)}</span>
+        `;
+        timeline.appendChild(li);
+      });
+
+      loading.style.display = 'none';
+    }
+
+    function sanitize(str) {
+      return str.replace(/[&<>'"]/g, tag => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        "'": '&#39;',
+        '"': '&quot;',
+      }[tag]));
+    }
+  })();
+</script>
+<!-- 📦 Timeline Embed End -->
