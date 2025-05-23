@@ -1,5 +1,131 @@
-<!-- 📦 Timeline Embed Start -->
-<div class="timeline-embed">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gig Timeline</title>
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js" defer></script>
+  <style>
+    body {
+      font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+      font-size: 14px;
+      line-height: 1.4;
+      color: #111;
+      background: transparent;
+      margin: 0;
+      padding: 1em;
+    }
+
+    .filters {
+      text-align: center;
+      padding: 0.5em 1em;
+      border-bottom: 1px solid #ccc;
+      background: transparent;
+      font-size: 0.9em;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .filters select {
+      font: inherit;
+      padding: 0.4em 0.8em;
+      border: 1px solid #ccc;
+      background: transparent;
+      color: #111;
+    }
+
+    .timeline {
+      list-style: none;
+      padding: 0;
+      margin: 0 auto;
+      max-width: 720px;
+      background: transparent;
+    }
+
+    .year-separator {
+      text-align: center;
+      font-size: 0.9em;
+      font-weight: bold;
+      margin: 1.5em 0 1em;
+      color: #555;
+    }
+
+    .year-separator::before,
+    .year-separator::after {
+      content: "⎯";
+      margin: 0 0.5em;
+      color: #bbb;
+    }
+
+    .timeline li {
+      padding: 0.75em 1em 0.75em 2em;
+      margin-bottom: 0.75em;
+      border-left: 2px solid #000;
+      background: transparent;
+      border-radius: 0;
+      position: relative;
+    }
+
+    .timeline li:hover {
+      background: rgba(0, 0, 0, 0.02);
+    }
+
+    .icon-eq {
+      position: absolute;
+      left: 1em;
+      top: 1.2em;
+    }
+
+    .icon-eq svg {
+      height: 1.1em;
+      width: 1.1em;
+      stroke: #000;
+    }
+
+    .date {
+      font-size: 0.7em;
+      font-weight: bold;
+      margin-bottom: 0.25em;
+      display: block;
+    }
+
+    .venue,
+    .location {
+      font-size: 0.95em;
+    }
+
+    #loading {
+      text-align: center;
+      padding: 1em;
+      font-style: italic;
+      color: #666;
+    }
+
+    #backToTop {
+      position: fixed;
+      bottom: 1.5em;
+      right: 1.5em;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      display: none;
+      transform: rotate(-90deg);
+    }
+
+    #backToTop svg {
+      width: 1.4em;
+      height: 1.4em;
+      stroke: #000;
+      transition: transform 0.2s ease;
+    }
+
+    #backToTop:hover svg {
+      transform: rotate(-90deg) scale(1.15);
+    }
+  </style>
+</head>
+<body>
   <div class="filters">
     <label for="yearSelect">Jump to Year:</label>
     <select id="yearSelect">
@@ -17,163 +143,50 @@
       <polygon points="6 3 20 12 6 21 6 3" />
     </svg>
   </button>
-</div>
 
-<style>
-  .timeline-embed {
-    font-family: inherit;
-    font-size: 15px;
-    line-height: 1.4;
-    color: #111;
-    max-width: 100%;
-  }
-
-  .timeline-embed .filters {
-    text-align: center;
-    padding: 0.8em;
-    border-bottom: 1px solid #ddd;
-    position: sticky;
-    top: 0;
-    background: #fff;
-    z-index: 10;
-  }
-
-  .timeline-embed select {
-    font: inherit;
-    padding: 0.4em 0.8em;
-    border: 1px solid #ccc;
-    background: #fafafa;
-  }
-
-  .timeline-embed .timeline {
-    list-style: none;
-    padding: 0;
-    margin: 0 auto;
-    max-width: 720px;
-  }
-
-  .timeline-embed .year-separator {
-    text-align: center;
-    font-size: 0.95em;
-    font-weight: bold;
-    margin: 2em 0 1em;
-    color: #333;
-  }
-
-  .timeline-embed .year-separator::before,
-  .timeline-embed .year-separator::after {
-    content: "⎯";
-    margin: 0 0.5em;
-    color: #aaa;
-  }
-
-  .timeline-embed li {
-    padding: 1em 1em 1em 2.5em;
-    margin-bottom: 1.2em;
-    border-left: 3px solid #000;
-    position: relative;
-    background: #fff;
-    transition: all 0.2s ease;
-  }
-
-  .timeline-embed li:hover {
-    background: #f9f9f9;
-  }
-
-  .timeline-embed .icon-eq {
-    position: absolute;
-    left: 1em;
-    top: 1.3em;
-  }
-
-  .timeline-embed .icon-eq svg {
-    height: 1.1em;
-    width: 1.1em;
-    stroke: #000;
-  }
-
-  .timeline-embed .date {
-    font-size: 0.75em;
-    font-weight: bold;
-    margin-bottom: 0.3em;
-    display: block;
-  }
-
-  .timeline-embed .venue,
-  .timeline-embed .location {
-    font-size: 1em;
-  }
-
-  .timeline-embed #loading {
-    text-align: center;
-    padding: 2em 0;
-    font-style: italic;
-  }
-
-  .timeline-embed #backToTop {
-    position: fixed;
-    bottom: 1.5em;
-    right: 1.5em;
-    background: none;
-    border: none;
-    cursor: pointer;
-    display: none;
-    transform: rotate(-90deg);
-  }
-
-  .timeline-embed #backToTop svg {
-    width: 1.4em;
-    height: 1.4em;
-    stroke: #000;
-    transition: transform 0.2s ease;
-  }
-
-  .timeline-embed #backToTop:hover svg {
-    transform: rotate(-90deg) scale(1.15);
-  }
-</style>
-
-<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
-<script>
-  (() => {
+  <script>
     const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQFiiNQbh6Zl6XboxeYDkXlgY0lCVxbgKY13disqsct61g_WmLXSnTG3HUeuzihqZ-HR0N6TIhPWyXb/pub?gid=0&single=true&output=csv';
 
-    const timeline = document.querySelector('.timeline-embed #timeline');
-    const loading = document.querySelector('.timeline-embed #loading');
-    const yearSelect = document.querySelector('.timeline-embed #yearSelect');
-    const backToTopBtn = document.querySelector('.timeline-embed #backToTop');
+    const timeline = document.getElementById('timeline');
+    const loading = document.getElementById('loading');
+    const yearSelect = document.getElementById('yearSelect');
+    const backToTopBtn = document.getElementById('backToTop');
     let allEvents = [];
 
-    fetch(csvUrl)
-      .then(res => res.text())
-      .then(text => {
-        const data = Papa.parse(text, { header: true }).data;
-        allEvents = data.filter(e => e.Date && e.Venue && e.City && e.Country)
-          .map(e => {
-            const date = new Date(e.Date.split('/').reverse().join('-'));
-            return {
-              date,
-              year: date.getFullYear(),
-              venue: e.Venue.trim(),
-              city: e.City.trim(),
-              country: e.Country.trim(),
-            };
-          });
-        populateYearOptions();
-        renderTimeline();
-      })
-      .catch(() => {
-        loading.textContent = 'Failed to load events.';
+    document.addEventListener('DOMContentLoaded', () => {
+      fetch(csvUrl)
+        .then(res => res.text())
+        .then(text => {
+          const data = Papa.parse(text, { header: true }).data;
+          allEvents = data
+            .filter(e => e.Date && e.Venue && e.City && e.Country)
+            .map(e => {
+              const date = new Date(e.Date.split('/').reverse().join('-'));
+              return {
+                date,
+                year: date.getFullYear(),
+                venue: e.Venue.trim(),
+                city: e.City.trim(),
+                country: e.Country.trim(),
+              };
+            });
+
+          populateYearOptions();
+          renderTimeline();
+        })
+        .catch(() => {
+          loading.textContent = 'Failed to load events.';
+        });
+
+      yearSelect.addEventListener('change', renderTimeline);
+
+      window.addEventListener('scroll', () => {
+        backToTopBtn.style.display = window.scrollY > 300 ? 'block' : 'none';
       });
 
-    yearSelect.addEventListener('change', renderTimeline);
-
-    window.addEventListener('scroll', () => {
-      backToTopBtn.style.display = window.scrollY > 300 ? 'block' : 'none';
-    });
-
-    backToTopBtn.addEventListener('click', () => {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      backToTopBtn.addEventListener('click', () => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      });
     });
 
     function populateYearOptions() {
@@ -232,6 +245,6 @@
         '"': '&quot;',
       }[tag]));
     }
-  })();
-</script>
-<!-- 📦 Timeline Embed End -->
+  </script>
+</body>
+</html>
